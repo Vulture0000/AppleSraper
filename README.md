@@ -44,7 +44,7 @@ This project was designed and built end-to-end using **[Google Gemini AI](https:
 ## 📌 Submission Links
 
 * **Public Source-Code Repository**: [https://github.com/Vulture0000/AppleSraper](https://github.com/Vulture0000/AppleSraper)
-* **Working Project Demo Video**: [Click here to watch the project walkthrough demo video](https://youtu.be/your-demo-video-link) *(replace with your recording link)*
+* **Working Project Demo Video**: [Click here to watch the project walkthrough demo video](https://youtu.be/32m2z-Zddq4) *(replace with your recording link)*
 
 ---
 

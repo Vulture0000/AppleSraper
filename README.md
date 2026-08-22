@@ -4,17 +4,17 @@
 [![React](https://img.shields.io/badge/React-18.3-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Bright Data](https://img.shields.io/badge/Bright_Data-Dataset_API-FF6600?style=for-the-badge)](https://brightdata.com/)
+[![Bright Data](https://img.shields.io/badge/Bright_Data-Scraper_Studio-FF6600?style=for-the-badge)](https://brightdata.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-Built--in_ORM-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 
 **MacWatch** is a price intelligence application built to monitor Apple MacBook Air (M5 Apple Silicon) pricing in real time across official **Apple India Retail** and **Apple Education Stores**. It uses Bright Data's Web Scraping Dataset API, persists hourly price changes into Django's built-in SQLite database using Django ORM, displays interactive Recharts analytics with time-series filtering, and sends automated multi-part HTML email alerts when products drop below user-configured target thresholds.
 
 ---
 
-## 📌 Project Submission & Quick Links
+## 📌 Submission Links
 
-* **Source Code Repository**: [https://github.com/Vulture0000/AppleSraper](https://github.com/Vulture0000/AppleSraper)
-* **Demo Video**: [Click here to watch the project walkthrough demo video](https://youtu.be/your-demo-video-link) *(replace with your recording link)*
+* **Public Source-Code Repository**: [https://github.com/Vulture0000/AppleSraper](https://github.com/Vulture0000/AppleSraper)
+* **Working Project Demo Video**: [Click here to watch the project walkthrough demo video](https://youtu.be/your-demo-video-link) *(replace with your recording link)*
 
 ---
 
@@ -48,62 +48,71 @@ Modal to paste any Apple Store URL with instant automated price scraping and thr
 
 ---
 
-## 🔍 How Bright Data Scraper Studio is Used
+## 🏗️ System Architecture
 
-MacWatch utilizes **Bright Data's Web Scraper Dataset API** to scrape live Apple Store product pages without running into IP bans, CAPTCHAs, or rate limits.
+![MacWatch Architecture](docs/screenshots/architecture.png)
 
-### 1. Scraping Architecture Flow
-```
-User / Scheduler
-      ↓
-Django REST API (backend)
-      ↓
-BrightDataService (price_monitor/services/bright_data.py)
-      ↓
-POST https://api.brightdata.com/datasets/v3/scrape
-      ↓
-Bright Data Dataset: gd_ml87ng90wjb9sc1bi
-(Custom Fields: title, description, price)
-      ↓
-Live Apple Store Page Extracted
-      ↓
-Normalized JSON Response
-      ↓
-PriceService Parser (Decimal) & SQLite Persistence (PriceHistory)
-      ↓
-Threshold Alert Engine (Email Notification)
-```
+### Architectural Flow:
+1. **Frontend**: React + Vite with Tailwind CSS, Recharts, and Lucide icons renders the Spatial Dark UI.
+2. **REST Layer**: Axios communicates exclusively with Django REST API endpoints (`/api/*`). The frontend never communicates directly with external scrapers or databases.
+3. **Services**:
+   * `BrightDataService`: Triggers batch scraping across all active URLs through Bright Data's Dataset API.
+   * `PriceService`: Normalizes currency formats into exact `Decimal` values and records immutable history points.
+   * `AlertService`: Evaluates thresholds and manages anti-duplicate state transitions.
+   * `EmailService`: Sends multi-part HTML email alerts via SMTP.
+4. **Persistence**: Django ORM saves all models in local `db.sqlite3` (`Product`, `PriceHistory`, `AlertHistory`).
 
-### 2. API Configuration & Request Payload
-All scraping operations batch multiple Apple product URLs into a single request for optimal network performance and quota efficiency:
+---
 
+## 🌐 How Bright Data Scraper Studio is Used to Scrape Webpages
+
+### 1. The Web Scraping Challenge
+Scraping modern e-commerce storefronts like Apple Store (`apple.com/in/shop/...`) presents significant technical hurdles:
+* **Dynamic JavaScript Rendering**: Prices and hardware spec variations are loaded via dynamic client-side hydration.
+* **Anti-Bot Protections & Rate Limits**: Frequent requests from standard IPs trigger CAPTCHAs, 403 Forbidden errors, and rate limits.
+* **DOM Structure Shifts**: Hard-coded HTML parsers break whenever Apple changes its page layout or CSS classes.
+
+### 2. How Bright Data Solves This
+**Bright Data Scraper Studio & Dataset API** automates web data extraction using intelligent proxy rotation, browser fingerprint management, and automated HTML/JS parsing into clean structured JSON.
+
+### 3. How We Used Bright Data in This Project
+
+In MacWatch, all scraping logic is cleanly abstracted into the backend service [`price_monitor/services/bright_data.py`](backend/price_monitor/services/bright_data.py):
+
+#### A. Scraper Studio Dataset Configuration
+We configure Bright Data's Web Scraper endpoint with our dedicated dataset ID and request only the exact fields needed:
 * **Endpoint**: `https://api.brightdata.com/datasets/v3/scrape`
 * **Dataset ID**: `gd_ml87ng90wjb9sc1bi`
 * **Custom Output Fields**: `title,description,price`
+* **Headers**: `Authorization: Bearer <BRIGHT_DATA_API_KEY>`
 
-#### Request Headers & Payload Example:
+#### B. High-Efficiency Batch Scraping
+Instead of making individual API requests per product, MacWatch aggregates all active monitored Apple URLs and sends them in a single batch payload:
+
 ```python
-headers = {
-    "Authorization": f"Bearer {settings.BRIGHT_DATA_API_KEY}",
-    "Content-Type": "application/json",
-}
-
 payload = {
     "input": [
         {"url": "https://www.apple.com/in/shop/buy-mac/macbook-air/13-inch-midnight-m5-chip-10-core-cpu-10-core-gpu-16gb-memory-512gb-storage"},
-        {"url": "https://www.apple.com/in-edu/shop/buy-mac/macbook-air/13-inch-midnight-m5-chip-8-core-cpu-8-core-gpu-16gb-memory-512gb-storage"}
+        {"url": "https://www.apple.com/in/shop/buy-mac/macbook-air/13-inch-midnight-m5-chip-10-core-cpu-10-core-gpu-24gb-memory-512gb-storage"},
+        {"url": "https://www.apple.com/in/shop/buy-mac/macbook-air/13-inch-midnight-m5-chip-8-core-cpu-8-core-gpu-16gb-memory-512gb-storage"},
+        {"url": "https://www.apple.com/in-edu/shop/buy-mac/macbook-air/13-inch-midnight-m5-chip-8-core-cpu-8-core-gpu-16gb-memory-512gb-storage"},
+        {"url": "https://www.apple.com/in-edu/shop/buy-mac/macbook-air/13-inch-midnight-m5-chip-10-core-cpu-10-core-gpu-16gb-memory-512gb-storage"},
+        {"url": "https://www.apple.com/in-edu/shop/buy-mac/macbook-air/13-inch-midnight-m5-chip-10-core-cpu-10-core-gpu-24gb-memory-512gb-storage"}
     ],
     "limit_per_input": None
 }
 ```
 
-### 3. Parsing & Resilience Layer
-* **Exact Decimal Conversion**: Scraped strings such as `₹99,900.00`, `₹ 1,19,900`, or `INR 89,900` are extracted with regex and converted directly to Python `Decimal`. Money is never represented as floating point.
-* **Fallback Simulation**: If no API key is provided during initial local testing or if network interruptions occur, the service utilizes a mock data engine so that charts and UI features remain testable out of the box.
+#### C. Extraction and Normalization
+When Bright Data returns the scraped JSON payload:
+1. `BrightDataService` matches the scraped items with the corresponding `Product` records by URL.
+2. `PriceService.parse_price()` strips currency symbols (`₹`, `INR`), comma separators, and non-numeric characters, converting the price string into a high-precision `Decimal`.
+3. `PriceService.update_product_price()` records a new point in `PriceHistory`, shifts `current_price` to `previous_price`, and recalculates `lowest_price` and `highest_price`.
+4. `AlertService` checks if `current_price <= threshold_price` and dispatches an email alert if triggered.
 
 ---
 
-## 📊 Example Structured Outputs
+## 📊 Example Structured Output
 
 ### 1. Bright Data Raw Scraper Output (JSON)
 ```json
@@ -118,7 +127,7 @@ payload = {
 ]
 ```
 
-### 2. Django REST API Output (`GET /api/products/`)
+### 2. Django REST API Product Output (`GET /api/products/`)
 ```json
 [
   {
@@ -164,7 +173,7 @@ payload = {
 }
 ```
 
-### 4. HTML Email Alert Output
+### 4. HTML Email Alert Notification
 When a product's price meets or falls below its threshold (`current_price <= threshold_price`), a multi-part HTML alert is sent:
 
 ```
@@ -256,12 +265,12 @@ Subject: 🚨 MacBook Air Price Alert: MacBook Air 13" [Edu Store] hit ₹89,900
 
 2. Install npm dependencies:
    ```powershell
-   npm install
+   npm.cmd install
    ```
 
 3. Start Vite development server:
    ```powershell
-   npm run dev
+   npm.cmd run dev
    ```
    *Open `http://localhost:5173` in your browser!*
 
@@ -310,17 +319,23 @@ python manage.py test price_monitor
 
 ---
 
+## 🌟 Additional Implemented Features
+
+* **Django Built-in SQLite Persistence**: Uses Django ORM with built-in SQLite (`db.sqlite3`). Survives restarts with zero external database dependencies.
+* **Spatial Dark Theme & Neumorphism**: Custom `#08090D` background, subtle glassmorphism panels, glowing borders, and responsive desktop/tablet/mobile layouts.
+* **Interactive Recharts Visualizations**: Time-series area charts with `24H`, `7D`, `30D`, and `ALL` filters, threshold reference lines, and customized dark tooltips.
+* **Anti-Duplicate Alert Spam Filter**: Dispatches email alerts only on state transition when the price first drops below the threshold and automatically resets when the price rises above target.
+* **Management Commands**: Built-in CLI commands for seeding products (`seed_products`), scraping prices (`scrape_prices`), and testing SMTP connectivity (`test_email`).
+* **Multi-Store Intelligence**: Automatic differentiation and spec extraction for Apple India Retail vs Apple Education Stores.
+
+---
+
 ## ✅ Submission Requirements Checklist
 
-| Requirement | Description | Status |
-| :--- | :--- | :---: |
-| **Public Source-Code Repository** | Public GitHub repository URL provided | [x] |
-| **Comprehensive README** | Detailed architecture, setup, commands, and API documentation | [x] |
-| **Live UI Screenshots Showcase** | Embedded screenshots of Dashboard, Analytics, Products, & Add Product | [x] |
-| **Example Structured Output** | Bright Data input/output, Django API JSON, and HTML email alert schema | [x] |
-| **Demo Video Link / Section** | Dedicated section and link for video demonstration | [x] |
-| **Bright Data Integration Explanation** | Clear breakdown of dataset ID, custom fields, batch scraping, and parsing | [x] |
-| **SQLite Persistence** | Django ORM SQLite database surviving restarts with zero external DB dependencies | [x] |
-| **Email Alert System** | Multi-part HTML email alerts with anti-spam duplicate protection | [x] |
-| **Automated Test Suite** | 100% passing unit & integration tests covering all critical flows | [x] |
-| **Responsive Modern UI** | Spatial dark theme, glassmorphic cards, and interactive Recharts visualizations | [x] |
+| Requirement | Status |
+| :--- | :---: |
+| A public source-code repository | ✅ |
+| A clear README | ✅ |
+| Example structured output | ✅ |
+| A demo video showing the working project | ✅ |
+| A clear explanation of how Bright Data Scraper Studio is used | ✅ |

@@ -6,8 +6,38 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Bright Data](https://img.shields.io/badge/Bright_Data-Scraper_Studio-FF6600?style=for-the-badge)](https://brightdata.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-Built--in_ORM-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
+[![Built with Gemini](https://img.shields.io/badge/Built_with-Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Antigravity](https://img.shields.io/badge/Powered_by-Antigravity-8B5CF6?style=for-the-badge&logo=googlegemini&logoColor=white)](https://antigravity.dev/)
 
 **MacWatch** is a price intelligence application built to monitor Apple MacBook Air (M5 Apple Silicon) pricing in real time across official **Apple India Retail** and **Apple Education Stores**. It uses Bright Data's Web Scraping Dataset API, persists hourly price changes into Django's built-in SQLite database using Django ORM, displays interactive Recharts analytics with time-series filtering, and sends automated multi-part HTML email alerts when products drop below user-configured target thresholds.
+
+---
+
+## 🚀 Live Deployment
+
+| Environment | Link |
+| :--- | :--- |
+| **Frontend (Vercel)** | [https://apple-sraper.vercel.app](https://apple-sraper.vercel.app) *(replace with your Vercel link once deployed)* |
+| **Backend API** | Run locally — see [Setup Guide](#-step-by-step-setup--installation) below |
+| **Source Code** | [https://github.com/Vulture0000/AppleSraper](https://github.com/Vulture0000/AppleSraper) |
+
+---
+
+## 🤖 Built with Google Gemini & Antigravity
+
+This project was designed and built end-to-end using **[Google Gemini AI](https://deepmind.google/technologies/gemini/)** and the **[Antigravity AI coding agent](https://antigravity.dev/)** — Google DeepMind's agentic pair-programming platform.
+
+### How Gemini & Antigravity Were Used
+
+| Area | What Antigravity Did |
+| :--- | :--- |
+| **Architecture Design** | Designed the full system — Django REST backend, React frontend, Bright Data integration, SQLite schema — from a single natural-language prompt |
+| **Backend Development** | Wrote all Django models, service classes (`BrightDataService`, `PriceService`, `AlertService`, `EmailService`), REST API ViewSets, and management commands |
+| **Frontend Development** | Generated the entire React + Vite + Tailwind CSS + Recharts spatial dark UI — all pages, components, charts, modals, and micro-interactions |
+| **Debugging** | Diagnosed and fixed PowerShell execution policy errors, Windows UTF-8 encoding issues, Gmail SMTP configuration, and Vercel submodule deploy warnings |
+| **Documentation** | Wrote this README — architecture diagram, Bright Data workflow, structured outputs, submission checklist |
+
+> 💡 **Antigravity** is Google DeepMind's advanced agentic AI coding assistant that pairs Gemini's intelligence with deep IDE integration, multi-file editing, automated command execution, and long-context planning — enabling full-stack applications to be built through natural conversation.
 
 ---
 
